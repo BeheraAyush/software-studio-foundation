@@ -1,0 +1,1396 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Oventales Home Bakery | Custom Cakes & Bakes in Bhubaneswar</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <meta name="description" content="An independent 3D website concept for Oventales Home Bakery, Bhubaneswar, based on public listing details and customer-shared product feedback.">
+    <!-- Three.js & GSAP -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        espresso: '#241714',
+                        velvet: '#38241f',
+                        gold: '#c58b52',
+                        goldlight: '#f1d7b8',
+                        rosecream: '#fff1e5',
+                        berry: '#a84456'
+                    },
+                    fontFamily: {
+                        serif: ['"Cormorant Garamond"', 'serif'],
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #241714;
+            color: #fff1e5;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            overflow-x: hidden;
+        }
+
+        h1, h2, h3, .font-serif {
+            font-family: 'Cormorant Garamond', serif;
+        }
+
+        /* Fixed 3D WebGL Canvas */
+        #webgl-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 1;
+            pointer-events: auto;
+            cursor: grab;
+        }
+
+        #webgl-container:active {
+            cursor: grabbing;
+        }
+
+        /* Glassmorphism Cards */
+        .glass-card {
+            background: rgba(56, 36, 31, 0.78);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(197, 139, 82, 0.24);
+            box-shadow: 0 24px 48px rgba(0, 0, 0, 0.55);
+        }
+
+        .glass-pill {
+            background: rgba(18, 13, 14, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(197, 139, 82, 0.3);
+        }
+
+        .option-btn {
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            border: 1px solid rgba(249, 232, 226, 0.12);
+        }
+
+        .option-btn:hover {
+            border-color: rgba(197, 139, 82, 0.6);
+            transform: translateY(-2px);
+        }
+
+        .option-btn.active {
+            background: linear-gradient(135deg, rgba(197, 139, 82, 0.24), rgba(158, 42, 71, 0.25));
+            border-color: #c58b52;
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.25);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #241714;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #3d2b2e;
+            border-radius: 4px;
+            border: 1px solid rgba(197, 139, 82, 0.3);
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #c58b52;
+        }
+
+        /* Content Overlay pointer events pass-through so user can spin 3D cake */
+        .scroll-section {
+            position: relative;
+            z-index: 10;
+            pointer-events: none;
+        }
+        .interactive-panel {
+            pointer-events: auto;
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 0 15px rgba(197, 139, 82, 0.3); }
+            50% { box-shadow: 0 0 28px rgba(212, 175, 55, 0.65); }
+        }
+        .glow-gold {
+            animation: pulseGlow 3s infinite;
+        }
+    </style>
+</head>
+<body class="selection:bg-gold selection:text-espresso">
+
+    <!-- 3D WebGL Canvas Background -->
+    <div id="webgl-container" title="Drag to rotate 3D Cake"></div>
+
+    <!-- Top Navigation Bar -->
+    <header class="fixed top-0 left-0 right-0 z-40 px-4 sm:px-8 py-4 pointer-events-none">
+        <div class="max-w-7xl mx-auto flex items-center justify-between glass-pill px-5 py-3 rounded-full pointer-events-auto">
+            <a href="#hero" class="flex items-center gap-3 group">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-gold to-amber-700 flex items-center justify-center text-espresso font-bold text-lg shadow-md">
+                    <i class="fa-solid fa-crown"></i>
+                </div>
+                <div>
+                    <span class="font-serif text-xl sm:text-2xl font-bold tracking-wider text-rosecream block leading-none">OVENTALES</span>
+                    <span class="text-[10px] uppercase tracking-[0.25em] text-gold block">Home Bakery • Bhubaneswar, Odisha</span>
+                </div>
+            </a>
+
+            <nav class="hidden md:flex items-center gap-6 text-xs uppercase tracking-widest text-rosecream/80">
+                <a href="#customer-favourites" class="hover:text-gold transition">Customer favourites</a>
+                <a href="#cake-studio" class="hover:text-gold transition">3D cake studio</a>
+                <a href="#customer-notes" class="hover:text-gold transition">Customer notes</a>
+                <a href="#contact" class="hover:text-gold transition">Find Oventales</a>
+            </nav>
+
+            <div class="flex items-center gap-3">
+                <a href="https://www.instagram.com/oventales_byniha/" target="_blank" rel="noopener" class="bg-gradient-to-r from-gold to-amber-500 text-espresso font-semibold px-4 py-2 rounded-full text-xs sm:text-sm flex items-center gap-2 hover:brightness-110 transition shadow-lg">
+                    <i class="fa-brands fa-instagram"></i>
+                    <span>Instagram</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Right Vertical Baking Progress Indicator -->
+    <aside class="fixed right-4 sm:right-6 top-1/2 -translate-y-1/2 z-30 hidden sm:flex flex-col items-center gap-3 glass-pill py-4 px-2.5 rounded-full">
+        <span class="text-[10px] uppercase tracking-widest text-gold font-semibold" style="writing-mode: vertical-rl;">CAKE STUDIO</span>
+        <div class="w-1.5 h-36 bg-white/10 rounded-full overflow-hidden relative">
+            <div id="scroll-progress-bar" class="w-full bg-gradient-to-b from-gold via-amber-400 to-rose-500 rounded-full transition-all duration-150" style="height: 8%;"></div>
+        </div>
+        <span id="scroll-progress-pct" class="text-xs font-bold text-rosecream">0%</span>
+    </aside>
+
+    <!-- Interactive 3D Controls Hint Pill (Top Left under Header) -->
+    <div class="fixed left-4 sm:left-8 top-24 z-30 pointer-events-auto hidden lg:flex items-center gap-2.5 glass-pill px-4 py-2 rounded-full text-xs text-rosecream/80">
+        <i class="fa-solid fa-hand-pointer text-gold animate-bounce"></i>
+        <span>Scroll to build the cake • Drag to rotate</span>
+    </div>
+
+
+        <div class="relative z-40 pt-24 px-4 sm:px-8">
+            <div class="max-w-7xl mx-auto rounded-xl border border-gold/30 bg-black/65 px-4 py-3 text-center text-xs sm:text-sm text-rosecream/85">
+                <strong class="text-gold">Independent website concept:</strong>
+                Built from public listing details and customer-shared references. This is not Oventales' official website; confirm product photos, menu, prices and ordering details with the owner before launch.
+            </div>
+        </div>
+
+    <!-- Main Scroll Story Container -->
+    <main class="relative z-10">
+
+        <!-- HERO SECTION -->
+        <section id="hero" class="scroll-section min-h-screen flex items-center px-4 sm:px-10 lg:px-20 pt-24 pb-16">
+            <div class="max-w-xl interactive-panel glass-card p-7 sm:p-10 rounded-3xl">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gold/15 border border-gold/40 text-gold text-xs uppercase tracking-widest mb-5">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> Oventales • 3D Cake Preview
+                </div>
+                <h1 class="font-serif text-4xl sm:text-6xl font-bold leading-[1.08] text-rosecream mb-4">
+                    Customer-loved <span class="text-gold italic">desserts</span>, from Bhubaneswar.
+                </h1>
+                <p class="text-rosecream/75 text-sm sm:text-base leading-relaxed mb-6">
+                    Meet <strong class="text-rosecream">Oventales Home Bakery</strong>, a home bakery listed in Kendriya Vihar, Bhubaneswar. Public customer conversations mention its Ras Malai Tres Leches and Ferrero Rocher tub dessert. Explore the references, then spin a playful 3D cake concept.
+                </p>
+                <div class="flex flex-wrap items-center gap-3">
+                    <a href="#customer-favourites" class="bg-gradient-to-r from-gold to-amber-500 text-espresso font-bold px-6 py-3.5 rounded-full text-sm flex items-center gap-2 hover:scale-105 transition shadow-lg">
+                        <span>Explore customer favourites</span>
+                        <i class="fa-solid fa-arrow-down"></i>
+                    </a>
+                    <a href="https://www.instagram.com/oventales_byniha/" target="_blank" rel="noopener" class="px-5 py-3.5 rounded-full text-sm border border-gold/40 text-gold hover:bg-gold/10 transition flex items-center gap-2">
+                        <i class="fa-brands fa-instagram"></i> View Instagram
+                    </a>
+                </div>
+                <div class="mt-8 pt-6 border-t border-white/10 grid grid-cols-3 gap-4 text-center">
+                    <div>
+                        <p class="font-serif text-2xl font-bold text-gold">5.0/5</p>
+                        <p class="text-[11px] text-rosecream/60 uppercase tracking-wider">Google listing · 8 reviews</p>
+                    </div>
+                    <div>
+                        <p class="font-serif text-2xl font-bold text-gold">₹499</p>
+                        <p class="text-[11px] text-rosecream/60 uppercase tracking-wider">Customer-reported Ras Malai price*</p>
+                    </div>
+                    <div>
+                        <p class="font-serif text-2xl font-bold text-gold">BBSR</p>
+                        <p class="text-[11px] text-rosecream/60 uppercase tracking-wider">Kendriya Vihar</p>
+                    </div>
+                </div>
+                <p class="text-[10px] text-rosecream/45 mt-3">*₹499 was reported by a customer on Reddit on 14 October 2026, not verified as the current official price.</p>
+            </div>
+        </section>
+
+        <!-- STEP 1: THE SPONGE BASE -->
+        <section id="cake-studio" class="scroll-section min-h-screen flex items-center justify-end px-4 sm:px-10 lg:px-20 py-20">
+            <div class="max-w-lg w-full interactive-panel glass-card p-6 sm:p-9 rounded-3xl">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-xs uppercase tracking-[0.2em] text-gold font-semibold">Step 01 / 04 • Foundation</span>
+                    <span class="px-2.5 py-0.5 rounded-full bg-white/10 text-xs text-rosecream/80">3D build sequence</span>
+                </div>
+                <h2 class="font-serif text-3xl sm:text-4xl font-bold text-rosecream mb-2">Build a 3D cake concept</h2>
+                <p class="text-xs sm:text-sm text-rosecream/70 mb-6">
+                    This playful 3D builder is a design preview, not Oventales' live order configurator. The Ras Malai Tres Leches option is inspired by a product mentioned by a customer; all visual layers and combinations need bakery approval.
+                </p>
+
+                <div class="space-y-3" id="sponge-options-container">
+                    <!-- Populated or interactive buttons -->
+                    <button onclick="selectSponge('vanilla')" id="sponge-vanilla" class="option-btn active w-full p-4 rounded-2xl flex items-center justify-between text-left">
+                        <div class="flex items-center gap-3.5">
+                            <span class="w-8 h-8 rounded-full border border-white/30 shadow-inner flex-shrink-0" style="background-color: #f3d7a4;"></span>
+                            <div>
+                                <p class="font-semibold text-sm sm:text-base text-rosecream">Classic celebration cake</p>
+                                <p class="text-xs text-rosecream/60">A simple base concept • confirm flavour options</p>
+                            </div>
+                        </div>
+                        <span class="font-serif text-sm font-semibold text-gold">Ask for quote</span>
+                    </button>
+
+                    <button onclick="selectSponge('chocolate')" id="sponge-chocolate" class="option-btn w-full p-4 rounded-2xl flex items-center justify-between text-left">
+                        <div class="flex items-center gap-3.5">
+                            <span class="w-8 h-8 rounded-full border border-white/30 shadow-inner flex-shrink-0" style="background-color: #3b1e14;"></span>
+                            <div>
+                                <p class="font-semibold text-sm sm:text-base text-rosecream">Chocolate celebration cake</p>
+                                <p class="text-xs text-rosecream/60">Chocolate-style concept • confirm availability</p>
+                            </div>
+                        </div>
+                        <span class="font-serif text-sm font-semibold text-gold">Ask for quote</span>
+                    </button>
+
+                    <button onclick="selectSponge('redvelvet')" id="sponge-redvelvet" class="option-btn w-full p-4 rounded-2xl flex items-center justify-between text-left">
+                        <div class="flex items-center gap-3.5">
+                            <span class="w-8 h-8 rounded-full border border-white/30 shadow-inner flex-shrink-0" style="background-color: #8c1d2c;"></span>
+                            <div>
+                                <p class="font-semibold text-sm sm:text-base text-rosecream">Custom celebration design</p>
+                                <p class="text-xs text-rosecream/60">A personalised design concept</p>
+                            </div>
+                        </div>
+                        <span class="font-serif text-sm font-semibold text-gold">Ask for quote</span>
+                    </button>
+
+                    <button onclick="selectSponge('rasmalai')" id="sponge-rasmalai" class="option-btn w-full p-4 rounded-2xl flex items-center justify-between text-left">
+                        <div class="flex items-center gap-3.5">
+                            <span class="w-8 h-8 rounded-full border border-white/30 shadow-inner flex-shrink-0" style="background-color: #f6c85f;"></span>
+                            <div>
+                                <p class="font-semibold text-sm sm:text-base text-rosecream">Rasmalai-inspired cake</p>
+                                <p class="text-xs text-rosecream/60">Inspired by the rasmalai tres leches mentioned in reviews</p>
+                            </div>
+                        </div>
+                        <span class="font-serif text-sm font-semibold text-gold">Ask for quote</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- STEP 2: THE CREAM & FROSTING COAT -->
+        <section id="step-frosting" class="scroll-section min-h-screen flex items-center justify-start px-4 sm:px-10 lg:px-20 py-20">
+            <div class="max-w-lg w-full interactive-panel glass-card p-6 sm:p-9 rounded-3xl">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-xs uppercase tracking-[0.2em] text-gold font-semibold">Step 02 / 04 • Velvet Coat & Drip</span>
+                    <span class="px-2.5 py-0.5 rounded-full bg-white/10 text-xs text-rosecream/80">Visual finish preview</span>
+                </div>
+                <h2 class="font-serif text-3xl sm:text-4xl font-bold text-rosecream mb-2">Explore a visual finish</h2>
+                <p class="text-xs sm:text-sm text-rosecream/70 mb-6">
+                    These cream and glaze choices only change the 3D illustration. They are not a confirmed list of Oventales flavours or ingredients.
+                </p>
+
+                <div class="space-y-3">
+                    <button onclick="selectFrosting('mascarpone')" id="frosting-mascarpone" class="option-btn active w-full p-4 rounded-2xl flex items-center justify-between text-left">
+                        <div class="flex items-center gap-3.5">
+                            <span class="w-8 h-8 rounded-full border border-white/30 shadow-inner flex-shrink-0" style="background: linear-gradient(135deg, #fffdf9 50%, #e07a9b 50%);"></span>
+                            <div>
+                                <p class="font-semibold text-sm sm:text-base text-rosecream">Classic cream finish</p>
+                                <p class="text-xs text-rosecream/60">Illustrative cream and glaze combination</p>
+                            </div>
+                        </div>
+                        <span class="font-serif text-sm font-semibold text-gold">Ask for quote</span>
+                    </button>
+
+                    <button onclick="selectFrosting('caramel')" id="frosting-caramel" class="option-btn w-full p-4 rounded-2xl flex items-center justify-between text-left">
+                        <div class="flex items-center gap-3.5">
+                            <span class="w-8 h-8 rounded-full border border-white/30 shadow-inner flex-shrink-0" style="background: linear-gradient(135deg, #f5e1c8 50%, #c87d28 50%);"></span>
+                            <div>
+                                <p class="font-semibold text-sm sm:text-base text-rosecream">Caramel-style finish</p>
+                                <p class="text-xs text-rosecream/60">Illustrative caramel decoration</p>
+                            </div>
+                        </div>
+                        <span class="font-serif text-sm font-semibold text-gold">Ask for quote</span>
+                    </button>
+
+                    <button onclick="selectFrosting('mango')" id="frosting-mango" class="option-btn w-full p-4 rounded-2xl flex items-center justify-between text-left">
+                        <div class="flex items-center gap-3.5">
+                            <span class="w-8 h-8 rounded-full border border-white/30 shadow-inner flex-shrink-0" style="background: linear-gradient(135deg, #fff3c4 50%, #ff9f1c 50%);"></span>
+                            <div>
+                                <p class="font-semibold text-sm sm:text-base text-rosecream">Fruit-inspired finish</p>
+                                <p class="text-xs text-rosecream/60">Illustrative fruit glaze</p>
+                            </div>
+                        </div>
+                        <span class="font-serif text-sm font-semibold text-gold">Ask for quote</span>
+                    </button>
+
+                    <button onclick="selectFrosting('pistachio')" id="frosting-pistachio" class="option-btn w-full p-4 rounded-2xl flex items-center justify-between text-left">
+                        <div class="flex items-center gap-3.5">
+                            <span class="w-8 h-8 rounded-full border border-white/30 shadow-inner flex-shrink-0" style="background: linear-gradient(135deg, #dcebd1 50%, #6b8e4e 50%);"></span>
+                            <div>
+                                <p class="font-semibold text-sm sm:text-base text-rosecream">Pistachio-style finish</p>
+                                <p class="text-xs text-rosecream/60">Illustrative nut cream finish</p>
+                            </div>
+                        </div>
+                        <span class="font-serif text-sm font-semibold text-gold">Ask for quote</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- STEP 3: ARTISANAL TOPPINGS & CROWN -->
+        <section id="step-toppings" class="scroll-section min-h-screen flex items-center justify-end px-4 sm:px-10 lg:px-20 py-20">
+            <div class="max-w-lg w-full interactive-panel glass-card p-6 sm:p-9 rounded-3xl">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-xs uppercase tracking-[0.2em] text-gold font-semibold">Step 03 / 04 • The Crown</span>
+                    <span class="px-2.5 py-0.5 rounded-full bg-amber-500/20 text-xs text-gold">3D candle preview</span>
+                </div>
+                <h2 class="font-serif text-3xl sm:text-4xl font-bold text-rosecream mb-2">Add a decorative touch</h2>
+                <p class="text-xs sm:text-sm text-rosecream/70 mb-6">
+                    Rotate the cake and experiment with decorative styles. Final designs, toppings and dietary options must be confirmed directly with Oventales.
+                </p>
+
+                <div class="space-y-3 mb-6">
+                    <button onclick="selectToppings('berries')" id="topping-berries" class="option-btn active w-full p-4 rounded-2xl flex items-center justify-between text-left">
+                        <div class="flex items-center gap-3.5">
+                            <span class="w-8 h-8 rounded-full bg-rose-600/30 border border-rose-400 flex items-center justify-center text-rose-300">
+                                <i class="fa-solid fa-strawberry text-sm"></i>🍓
+                            </span>
+                            <div>
+                                <p class="font-semibold text-sm sm:text-base text-rosecream">Berry-style decoration</p>
+                                <p class="text-xs text-rosecream/60">Illustrative decorative topping</p>
+                            </div>
+                        </div>
+                        <span class="font-serif text-sm font-semibold text-gold">Ask for quote</span>
+                    </button>
+
+                    <button onclick="selectToppings('goldferrero')" id="topping-goldferrero" class="option-btn w-full p-4 rounded-2xl flex items-center justify-between text-left">
+                        <div class="flex items-center gap-3.5">
+                            <span class="w-8 h-8 rounded-full bg-amber-500/30 border border-gold flex items-center justify-center text-gold">
+                                ✨
+                            </span>
+                            <div>
+                                <p class="font-semibold text-sm sm:text-base text-rosecream">Chocolate-style decoration</p>
+                                <p class="text-xs text-rosecream/60">Illustrative chocolate topping</p>
+                            </div>
+                        </div>
+                        <span class="font-serif text-sm font-semibold text-gold">Ask for quote</span>
+                    </button>
+
+                    <button onclick="selectToppings('gulabjamun')" id="topping-gulabjamun" class="option-btn w-full p-4 rounded-2xl flex items-center justify-between text-left">
+                        <div class="flex items-center gap-3.5">
+                            <span class="w-8 h-8 rounded-full bg-orange-700/40 border border-orange-400 flex items-center justify-center">
+                                🍯
+                            </span>
+                            <div>
+                                <p class="font-semibold text-sm sm:text-base text-rosecream">Indian-fusion decoration</p>
+                                <p class="text-xs text-rosecream/60">Illustrative Indian-inspired topping</p>
+                            </div>
+                        </div>
+                        <span class="font-serif text-sm font-semibold text-gold">Ask for quote</span>
+                    </button>
+
+                    <button onclick="selectToppings('pearls')" id="topping-pearls" class="option-btn w-full p-4 rounded-2xl flex items-center justify-between text-left">
+                        <div class="flex items-center gap-3.5">
+                            <span class="w-8 h-8 rounded-full bg-slate-200/20 border border-white/50 flex items-center justify-center">
+                                🕯️
+                            </span>
+                            <div>
+                                <p class="font-semibold text-sm sm:text-base text-rosecream">Minimal celebration finish</p>
+                                <p class="text-xs text-rosecream/60">Illustrative pearl and candle decoration</p>
+                            </div>
+                        </div>
+                        <span class="font-serif text-sm font-semibold text-gold">Ask for quote</span>
+                    </button>
+                </div>
+
+                <!-- Fun Interactive 3D Actions -->
+                <div class="p-4 rounded-2xl bg-black/40 border border-gold/25 flex flex-wrap items-center justify-between gap-3">
+                    <span class="text-xs uppercase tracking-wider text-gold font-semibold">Live 3D Interactions:</span>
+                    <div class="flex items-center gap-2">
+                        <button onclick="toggleCandleFlame()" id="candle-btn" class="px-3.5 py-2 rounded-xl bg-amber-500/20 border border-amber-400/50 text-amber-200 text-xs font-semibold hover:bg-amber-500/30 transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-wind"></i> <span id="candle-btn-text">Blow Out Candle</span>
+                        </button>
+                        <button onclick="toggleSliceView()" id="slice-btn" class="px-3.5 py-2 rounded-xl bg-rose-500/20 border border-rose-400/50 text-rose-200 text-xs font-semibold hover:bg-rose-500/30 transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-utensils"></i> <span id="slice-btn-text">Cut a Slice</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- STEP 4: PERSONALISE THE 3D PREVIEW -->
+        <section id="step-bestsellers" class="scroll-section min-h-screen flex items-center justify-start px-4 sm:px-10 lg:px-20 py-24">
+            <div class="max-w-2xl w-full interactive-panel glass-card p-6 sm:p-9 rounded-3xl">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-xs uppercase tracking-[0.2em] text-gold font-semibold">Step 04 / 04 • Preview scale & message</span>
+                    <span class="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-xs text-emerald-300">Design preview only</span>
+                </div>
+                <h2 class="font-serif text-3xl sm:text-4xl font-bold text-rosecream mb-4">Personalise the 3D preview</h2>
+                <div class="mb-6">
+                    <label class="text-xs uppercase tracking-wider text-rosecream/70 block mb-2">Illustration scale (not order weight)</label>
+                    <div class="grid grid-cols-3 gap-3">
+                        <button onclick="selectWeight(0.5)" id="weight-0.5" class="option-btn p-3 rounded-xl text-center">
+                            <p class="font-bold text-sm text-rosecream">Petite</p>
+                            <p class="text-[11px] text-rosecream/60">Small preview</p>
+                        </button>
+                        <button onclick="selectWeight(1)" id="weight-1" class="option-btn active p-3 rounded-xl text-center">
+                            <p class="font-bold text-sm text-rosecream">Classic</p>
+                            <p class="text-[11px] text-rosecream/60">Standard preview</p>
+                        </button>
+                        <button onclick="selectWeight(2)" id="weight-2" class="option-btn p-3 rounded-xl text-center">
+                            <p class="font-bold text-sm text-rosecream">Celebration</p>
+                            <p class="text-[11px] text-rosecream/60">Large preview</p>
+                        </button>
+                    </div>
+                </div>
+                <div class="mb-7">
+                    <label class="text-xs uppercase tracking-wider text-rosecream/70 block mb-2">Sample cake message</label>
+                    <input type="text" id="cake-message-input" maxlength="28" placeholder="e.g. Happy Birthday!" oninput="updatePlaqueText(this.value)" class="w-full bg-black/40 border border-gold/30 rounded-xl px-4 py-2.5 text-sm text-rosecream placeholder:text-rosecream/40 focus:outline-none focus:border-gold">
+                </div>
+                <div class="border-t border-white/10 pt-6">
+                    <h3 class="font-serif text-2xl font-bold text-gold mb-1">Customer-mentioned favourites</h3>
+                    <p class="text-xs text-rosecream/60 mb-4">These are items mentioned by customers online. They are not a complete or owner-confirmed menu.</p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" id="customer-favourites">
+                        <article class="p-4 rounded-2xl bg-white/5 border border-white/10 hover:border-gold/50 transition flex flex-col justify-between">
+                            <div>
+                                <div class="flex justify-between items-start gap-3">
+                                    <h4 class="font-semibold text-sm text-rosecream">Ras Malai Tres Leches</h4>
+                                    <span class="font-serif font-bold text-gold whitespace-nowrap">₹499*</span>
+                                </div>
+                                <p class="text-[11px] text-rosecream/65 mt-2">A customer post dated 14 October 2026 reports paying ₹499 and praises the dessert.</p>
+                            </div>
+                            <a href="https://www.reddit.com/r/Bhubaneswar/comments/1x5r0l9/ras_malai_tres_lechesor_whats_remaining/" target="_blank" rel="noopener" class="mt-4 inline-flex items-center gap-2 text-xs text-gold underline">View customer post <i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+                        </article>
+                        <article class="p-4 rounded-2xl bg-white/5 border border-white/10 hover:border-gold/50 transition flex flex-col justify-between">
+                            <div>
+                                <div class="flex justify-between items-start gap-3">
+                                    <h4 class="font-semibold text-sm text-rosecream">Ferrero Rocher Tub</h4>
+                                    <span class="font-serif font-bold text-gold whitespace-nowrap">Ask for price</span>
+                                </div>
+                                <p class="text-[11px] text-rosecream/65 mt-2">A customer in the same discussion says they ordered this and found it very chocolatey.</p>
+                            </div>
+                            <a href="https://www.reddit.com/r/Bhubaneswar/comments/1x5r0l9/ras_malai_tres_lechesor_whats_remaining/" target="_blank" rel="noopener" class="mt-4 inline-flex items-center gap-2 text-xs text-gold underline">View customer mention <i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+                        </article>
+                        <article class="p-4 rounded-2xl bg-white/5 border border-white/10 hover:border-gold/50 transition flex flex-col justify-between">
+                            <div>
+                                <h4 class="font-semibold text-sm text-rosecream">Custom celebration cakes</h4>
+                                <p class="text-[11px] text-rosecream/65 mt-2">The business is listed as a bakery; confirm cake designs, sizes and custom-order availability with the owner.</p>
+                            </div>
+                            <button onclick="loadSignaturePreset('berryopera')" class="mt-4 w-full py-2 rounded-lg bg-gold/20 text-gold hover:bg-gold hover:text-espresso text-xs font-semibold transition">Preview a 3D design</button>
+                        </article>
+                        <article class="p-4 rounded-2xl bg-white/5 border border-white/10 hover:border-gold/50 transition flex flex-col justify-between">
+                            <div>
+                                <h4 class="font-semibold text-sm text-rosecream">More from Oventales</h4>
+                                <p class="text-[11px] text-rosecream/65 mt-2">See the bakery's customer-referenced Instagram profile for current product photos and updates.</p>
+                            </div>
+                            <a href="https://www.instagram.com/oventales_byniha/" target="_blank" rel="noopener" class="mt-4 inline-flex items-center justify-center gap-2 w-full py-2 rounded-lg bg-gold/20 text-gold hover:bg-gold hover:text-espresso text-xs font-semibold transition"><i class="fa-brands fa-instagram"></i> Open Instagram</a>
+                        </article>
+                    </div>
+                    <p class="text-[10px] text-rosecream/45 mt-4">*₹499 is a customer-reported amount from 14 October 2026, not a verified current official price. Please confirm directly with the bakery.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="customer-notes" class="scroll-section px-4 sm:px-10 lg:px-20 py-16">
+            <div class="max-w-5xl mx-auto interactive-panel glass-card p-7 sm:p-10 rounded-3xl">
+                <p class="text-xs uppercase tracking-[0.2em] text-gold font-semibold mb-3">Public customer feedback</p>
+                <h2 class="font-serif text-3xl sm:text-4xl font-bold text-rosecream mb-4">What customers have shared</h2>
+                <div class="grid sm:grid-cols-3 gap-3 mb-6">
+                    <div class="rounded-2xl bg-white/5 border border-white/10 p-4">
+                        <p class="font-serif text-3xl font-bold text-gold">5.0/5</p>
+                        <p class="text-xs text-rosecream/70 mt-1">Google business listing rating</p>
+                        <p class="text-[11px] text-rosecream/45 mt-1">8 reviews shown on the listing when checked.</p>
+                    </div>
+                    <div class="rounded-2xl bg-white/5 border border-white/10 p-4">
+                        <p class="font-serif text-3xl font-bold text-gold">₹499</p>
+                        <p class="text-xs text-rosecream/70 mt-1">Customer-reported Ras Malai Tres Leches price</p>
+                        <p class="text-[11px] text-rosecream/45 mt-1">Reported 14 October 2026; not a confirmed current price.</p>
+                    </div>
+                    <div class="rounded-2xl bg-white/5 border border-white/10 p-4">
+                        <p class="font-serif text-3xl font-bold text-gold">Bhubaneswar</p>
+                        <p class="text-xs text-rosecream/70 mt-1">Home bakery listing</p>
+                        <p class="text-[11px] text-rosecream/45 mt-1">Kendriya Vihar, Badaraghunathpur.</p>
+                    </div>
+                </div>
+                <div class="grid md:grid-cols-2 gap-3">
+                    <blockquote class="rounded-2xl bg-white/5 border border-white/10 p-5">
+                        <p class="text-sm text-rosecream leading-relaxed">“Cost 499, but I swear this tasted so good.”</p>
+                        <footer class="text-[11px] text-rosecream/50 mt-3">Customer post about Ras Malai Tres Leches · 14 Oct 2026</footer>
+                    </blockquote>
+                    <blockquote class="rounded-2xl bg-white/5 border border-white/10 p-5">
+                        <p class="text-sm text-rosecream leading-relaxed">A customer said the Ferrero Rocher tub was “great chocolatey.”</p>
+                        <footer class="text-[11px] text-rosecream/50 mt-3">Customer comment in the same discussion · 14 Oct 2026</footer>
+                    </blockquote>
+                    <blockquote class="rounded-2xl bg-white/5 border border-white/10 p-5 md:col-span-2">
+                        <p class="text-sm text-rosecream leading-relaxed">“Oventales kinda expensive but doesn't disappoint.”</p>
+                        <footer class="text-[11px] text-rosecream/50 mt-3">Local dessert recommendation discussion · 16 Oct 2026</footer>
+                    </blockquote>
+                </div>
+                <div class="mt-5 flex flex-wrap gap-3">
+                    <a class="inline-flex items-center gap-2 text-xs text-gold underline" href="https://www.reddit.com/r/Bhubaneswar/comments/1x5r0l9/ras_malai_tres_lechesor_whats_remaining/" target="_blank" rel="noopener">Source: Ras Malai Tres Leches customer post <i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+                    <a class="inline-flex items-center gap-2 text-xs text-gold underline" href="https://www.reddit.com/r/Bhubaneswar/comments/1x7l92a/any_good_dessert_spots_to_try_in_bhonsar/" target="_blank" rel="noopener">Source: Bhubaneswar dessert discussion <i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+                </div>
+                <div class="mt-7 border-t border-white/10 pt-6">
+                    <h3 class="font-serif text-2xl font-bold text-gold mb-2">Customer-shared product photo</h3>
+                    <p class="text-xs text-rosecream/65 mb-4">The following public Reddit post includes a customer-submitted photo of the Ras Malai Tres Leches they ordered. It is not an official bakery product photograph. The embedded post may be unavailable in some browsers; use the source link if it does not load.</p>
+                    <blockquote class="reddit-embed-bq" style="height:500px" data-embed-height="500"><a href="https://www.reddit.com/r/Bhubaneswar/comments/1x5r0l9/ras_malai_tres_lechesor_whats_remaining/">Ras Malai Tres Leches...Or what's remaining</a></blockquote>
+                    <script async src="https://embed.reddit.com/widgets.js" charset="UTF-8"></script>
+                </div>
+            </div>
+        </section>
+
+        <section id="contact" class="scroll-section px-4 sm:px-10 lg:px-20 pb-16">
+            <div class="max-w-5xl mx-auto interactive-panel glass-card p-7 sm:p-10 rounded-3xl">
+                <p class="text-xs uppercase tracking-[0.2em] text-gold font-semibold mb-3">Find Oventales</p>
+                <h2 class="font-serif text-3xl sm:text-4xl font-bold text-rosecream mb-4">A home bakery in Bhubaneswar</h2>
+                <div class="grid md:grid-cols-2 gap-5">
+                    <div class="rounded-2xl bg-white/5 border border-white/10 p-5">
+                        <p class="font-semibold text-gold mb-2">Business listing</p>
+                        <p class="text-sm text-rosecream/80">Oventales Home Bakery</p>
+                        <p class="text-xs text-rosecream/60 mt-2">Kendriya Vihar, Badaraghunathpur, Bhubaneswar, Odisha 752054, India</p>
+                        <a class="inline-flex items-center gap-2 mt-4 text-xs text-gold underline" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&amp;query=Oventales+Home+Bakery+Bhubaneswar">Open Google Maps <i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+                    </div>
+                    <div class="rounded-2xl bg-white/5 border border-white/10 p-5">
+                        <p class="font-semibold text-gold mb-2">Instagram</p>
+                        <p class="text-sm text-rosecream/80">@oventales_byniha</p>
+                        <p class="text-[11px] text-rosecream/55 mt-2">This handle was named by a customer in a public Bhubaneswar discussion. Confirm with the owner that it is the correct, current business account before production launch.</p>
+                        <a class="inline-flex items-center gap-2 mt-4 text-xs text-gold underline" target="_blank" rel="noopener" href="https://www.instagram.com/oventales_byniha/">Open Instagram profile <i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+                    </div>
+                </div>
+                <p class="text-[11px] text-rosecream/45 mt-5">No independently verified business phone number, email address or WhatsApp number was found in the sources reviewed. The public listing shows hours of 10:00 AM–10:00 PM daily; confirm current hours with the bakery.</p>
+            </div>
+        </section>
+
+        <div class="h-28"></div>
+    </main>
+
+        <footer class="relative z-10 px-4 sm:px-10 py-8 text-center text-[10px] text-rosecream/40">
+            Independent concept for presentation only • Public sources: Google business listing and customer discussions on Reddit • Product photos, menu, prices and contact channels require owner confirmation.
+        </footer>
+
+    <!-- Bottom Floating Live Custom Order Bar -->
+    <div class="fixed bottom-4 left-4 right-4 z-40 pointer-events-none">
+        <div class="max-w-5xl mx-auto glass-pill px-5 py-3.5 rounded-2xl pointer-events-auto flex flex-wrap items-center justify-between gap-4 shadow-2xl">
+            <div class="flex items-center gap-4">
+                <div class="hidden sm:flex w-11 h-11 rounded-xl bg-gold/15 border border-gold/40 items-center justify-center text-gold text-lg">
+                    <i class="fa-solid fa-cake-candles"></i>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs uppercase tracking-wider text-gold font-bold">3D design preview</span>
+                        <span id="bar-weight-badge" class="text-[11px] px-2 py-0.5 rounded bg-white/10 text-rosecream">Classic preview</span>
+                    </div>
+                    <p id="bar-summary-text" class="text-xs sm:text-sm text-rosecream/90 font-medium truncate max-w-xs sm:max-w-md">
+                        Classic cake base • Cream finish • Celebration decoration
+                    </p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-4 ml-auto">
+                <div class="text-right">
+                    <span class="text-[10px] uppercase tracking-widest text-rosecream/60 block">Live price</span>
+                    <span id="bar-total-price" class="font-serif text-xl sm:text-2xl font-bold text-gold leading-none">Not available</span>
+                </div>
+                <button onclick="openCheckoutModal()" class="glow-gold bg-gradient-to-r from-gold to-amber-500 text-espresso font-bold px-6 py-3 rounded-xl text-xs sm:text-sm flex items-center gap-2 hover:scale-105 transition">
+                    <span>View enquiry details</span>
+                    <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Summary & Instant Invoice Modal -->
+    <div id="checkout-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden items-center justify-center p-4">
+        <div class="glass-card max-w-lg w-full rounded-3xl p-6 sm:p-8 border border-gold/40 relative animate-fadeIn">
+            <button onclick="closeCheckoutModal()" class="absolute top-5 right-5 w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-rosecream">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            <div class="flex items-center gap-2 text-gold text-xs uppercase tracking-widest mb-1">
+                <i class="fa-solid fa-certificate"></i> Oventales Home Bakery Patisserie
+            </div>
+            <h3 class="font-serif text-3xl font-bold text-rosecream mb-4">Your cake enquiry</h3>
+
+            <div class="space-y-3 bg-black/40 p-4 rounded-2xl border border-white/10 text-sm mb-5">
+                <div class="flex justify-between">
+                    <span class="text-rosecream/70">1. Cake base Base:</span>
+                    <span id="modal-sponge" class="font-semibold text-rosecream">Classic cake base (preview)</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-rosecream/70">2. Cream & Drip:</span>
+                    <span id="modal-frosting" class="font-semibold text-rosecream">Illustrative cream finish</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-rosecream/70">3. Artisanal Crown:</span>
+                    <span id="modal-toppings" class="font-semibold text-rosecream">Illustrative decoration</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-rosecream/70">4. Weight & Dietary:</span>
+                    <span id="modal-weight" class="font-semibold text-emerald-300">Classic preview scale • Confirm with bakery</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-rosecream/70">Plaque Message:</span>
+                    <span id="modal-message" class="italic text-gold">"Happy Celebrations"</span>
+                </div>
+                <div class="border-t border-white/15 pt-3 flex justify-between items-baseline">
+                    <span class="font-semibold text-rosecream">Price:</span>
+                    <span id="modal-total" class="font-serif text-3xl font-bold text-gold">Quote on request</span>
+                </div>
+            </div>
+
+            <div class="rounded-2xl bg-black/35 border border-white/10 p-4 mb-4">
+                <p class="text-xs text-rosecream/75 leading-relaxed">This is a website preview only. It does not take orders or calculate Oventales' prices. Confirm flavours, cake size, dietary needs, delivery and final price directly with the bakery.</p>
+            </div>
+            <a href="https://www.instagram.com/oventales_byniha/" target="_blank" rel="noopener" class="block w-full text-center py-3.5 rounded-xl bg-gradient-to-r from-gold to-amber-500 text-espresso font-bold text-sm shadow-lg hover:brightness-110 transition">
+                <i class="fa-brands fa-instagram mr-2"></i>Open Instagram to enquire
+            </a>
+            <p class="text-[10px] text-rosecream/45 mt-3 text-center">Instagram handle is customer-referenced and should be confirmed by the owner before this demo is made public.</p>
+        </div>
+    </div>
+
+    <!-- APPLICATION & 3D WEBGL SCRIPT -->
+    <script>
+        /**************************************************************
+         * 1. STATE & INDIAN PRICING CONFIGURATION
+         **************************************************************/
+        const MENU_DATA = {
+            sponge: {
+                vanilla:    { name: 'Classic cake base (preview)', price: null, color: 0xf3d7a4, fillingColor: 0xfff5e4 },
+                chocolate:  { name: 'Chocolate-style base (preview)', price: null, color: 0x3b1e14, fillingColor: 0x24110b },
+                redvelvet:  { name: 'Celebration design (preview)', price: null, color: 0x8c1d2c, fillingColor: 0xfffdf9 },
+                rasmalai:   { name: 'Ras Malai Tres Leches style', price: null, color: 0xf6c85f, fillingColor: 0xfff0c2 }
+            },
+            frosting: {
+                mascarpone: { name: 'Classic cream finish (preview)', price: null, coatColor: 0xfffaf2, dripColor: 0xc93b63, roughness: 0.35 },
+                caramel:    { name: 'Caramel-style finish (preview)', price: null, coatColor: 0xf5e1c8, dripColor: 0xc87d28, roughness: 0.25 },
+                mango:      { name: 'Fruit-glaze finish (preview)', price: null, coatColor: 0xfff0b8, dripColor: 0xff9f1c, roughness: 0.2 },
+                pistachio:  { name: 'Pistachio-style finish (preview)', price: null, coatColor: 0xdcebd1, dripColor: 0x6b8e4e, roughness: 0.35 }
+            },
+            toppings: {
+                berries:    { name: 'Berry decoration (preview)', price: null, primaryColor: 0xd92644, secondaryColor: 0xf4a5b8, metalness: 0.1 },
+                goldferrero:{ name: 'Chocolate decoration (preview)', price: null, primaryColor: 0x5c3818, secondaryColor: 0xd4af37, metalness: 0.85 },
+                gulabjamun: { name: 'Indian-inspired decoration (preview)', price: null, primaryColor: 0x8c3b16, secondaryColor: 0x93c572, metalness: 0.2 },
+                pearls:     { name: 'Minimal celebration finish (preview)', price: null, primaryColor: 0xfefefe, secondaryColor: 0xd4af37, metalness: 0.6 }
+            }
+        };
+
+        const cakeState = {
+            sponge: 'vanilla',
+            frosting: 'mascarpone',
+            toppings: 'berries',
+            weight: 1.0, // 0.5, 1.0, 2.0
+            eggless: true,
+            message: 'Happy Celebrations',
+            candleLit: true,
+            sliced: false
+        };
+
+        /**************************************************************
+         * 2. THREE.JS SCENE, LIGHTS & PROCEDURAL 3D CAKE ARCHITECTURE
+         **************************************************************/
+        const container = document.getElementById('webgl-container');
+        const scene = new THREE.Scene();
+
+        const camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 100);
+        camera.position.set(0, 3.2, 8.8);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        container.appendChild(renderer.domElement);
+
+        // Studio Patisserie Lighting
+        const ambientLight = new THREE.AmbientLight(0xffe8d6, 0.75);
+        scene.add(ambientLight);
+
+        const keyLight = new THREE.DirectionalLight(0xfff5e6, 1.35);
+        keyLight.position.set(6, 10, 7);
+        keyLight.castShadow = true;
+        keyLight.shadow.mapSize.width = 1024;
+        keyLight.shadow.mapSize.height = 1024;
+        scene.add(keyLight);
+
+        const rimLight = new THREE.PointLight(0xd4af37, 1.4, 18);
+        rimLight.position.set(-6, 5, -5);
+        scene.add(rimLight);
+
+        const fillLight = new THREE.PointLight(0x9e2a47, 0.8, 15);
+        fillLight.position.set(5, -2, 4);
+        scene.add(fillLight);
+
+        // Master Root Group (rotated by user drag + scroll)
+        const worldGroup = new THREE.Group();
+        // Shift slightly left on desktop so cards on right don't obscure it; updated dynamically on scroll
+        scene.add(worldGroup);
+
+        const cakeMasterGroup = new THREE.Group();
+        worldGroup.add(cakeMasterGroup);
+
+        // --- A. LUXURY MARBLE & BRASS PEDESTAL ---
+        const pedestalGroup = new THREE.Group();
+        cakeMasterGroup.add(pedestalGroup);
+
+        const marbleMat = new THREE.MeshStandardMaterial({
+            color: 0xf4f1ea,
+            roughness: 0.18,
+            metalness: 0.08
+        });
+        const brassMat = new THREE.MeshStandardMaterial({
+            color: 0xd4af37,
+            roughness: 0.22,
+            metalness: 0.85
+        });
+
+        // Top platter
+        const platterGeo = new THREE.CylinderGeometry(2.55, 2.45, 0.18, 64);
+        const platterMesh = new THREE.Mesh(platterGeo, marbleMat);
+        platterMesh.position.y = -0.1;
+        platterMesh.receiveShadow = true;
+        pedestalGroup.add(platterMesh);
+
+        // Brass rim around platter
+        const rimGeo = new THREE.TorusGeometry(2.51, 0.045, 16, 64);
+        const rimMesh = new THREE.Mesh(rimGeo, brassMat);
+        rimMesh.rotation.x = Math.PI / 2;
+        rimMesh.position.y = -0.08;
+        pedestalGroup.add(rimMesh);
+
+        // Pedestal pillar
+        const pillarGeo = new THREE.CylinderGeometry(0.55, 1.15, 1.35, 32);
+        const pillarMesh = new THREE.Mesh(pillarGeo, brassMat);
+        pillarMesh.position.y = -0.85;
+        pedestalGroup.add(pillarMesh);
+
+        // --- B. STEP 1: SPONGE TIERS + FILLING RINGS ---
+        const spongeGroup = new THREE.Group();
+        cakeMasterGroup.add(spongeGroup);
+
+        const spongeMat = new THREE.MeshStandardMaterial({
+            color: MENU_DATA.sponge.vanilla.color,
+            roughness: 0.85,
+            metalness: 0.02
+        });
+        const fillingMat = new THREE.MeshStandardMaterial({
+            color: MENU_DATA.sponge.vanilla.fillingColor,
+            roughness: 0.45
+        });
+
+        const spongeTiers = [];
+        const tierHeight = 0.52;
+        const cakeRadius = 1.85;
+
+        for (let i = 0; i < 3; i++) {
+            const tierSubGroup = new THREE.Group();
+            const geo = new THREE.CylinderGeometry(cakeRadius, cakeRadius, tierHeight, 48);
+            const mesh = new THREE.Mesh(geo, spongeMat);
+            mesh.castShadow = true;
+            mesh.receiveShadow = true;
+            tierSubGroup.add(mesh);
+
+            // Cream filling disc between tiers
+            if (i < 2) {
+                const fillGeo = new THREE.CylinderGeometry(cakeRadius + 0.02, cakeRadius + 0.02, 0.1, 48);
+                const fillMesh = new THREE.Mesh(fillGeo, fillingMat);
+                fillMesh.position.y = tierHeight / 2 + 0.05;
+                tierSubGroup.add(fillMesh);
+            }
+
+            // Target Y position when assembled:
+            const targetY = 0.26 + i * (tierHeight + 0.08);
+            tierSubGroup.userData = { targetY: targetY };
+            // Start elevated & invisible so ScrollTrigger drops them in
+            tierSubGroup.position.y = targetY + 6;
+            tierSubGroup.scale.set(0.01, 0.01, 0.01);
+
+            spongeGroup.add(tierSubGroup);
+            spongeTiers.push(tierSubGroup);
+        }
+
+        // --- C. STEP 2: OUTER FROSTING COAT, DRIP GLAZE & PIPED ROSETTES ---
+        const frostingGroup = new THREE.Group();
+        cakeMasterGroup.add(frostingGroup);
+
+        const coatMat = new THREE.MeshStandardMaterial({
+            color: MENU_DATA.frosting.mascarpone.coatColor,
+            roughness: 0.35,
+            metalness: 0.05
+        });
+
+        const dripMat = new THREE.MeshStandardMaterial({
+            color: MENU_DATA.frosting.mascarpone.dripColor,
+            roughness: 0.15,
+            metalness: 0.12
+        });
+
+        // Smooth Outer Frosting Jacket
+        const coatHeight = 1.76;
+        const coatGeo = new THREE.CylinderGeometry(cakeRadius + 0.12, cakeRadius + 0.12, coatHeight, 64);
+        const coatMesh = new THREE.Mesh(coatGeo, coatMat);
+        coatMesh.position.y = coatHeight / 2;
+        coatMesh.castShadow = true;
+         coatMesh.receiveShadow = true;
+        frostingGroup.add(coatMesh);
+
+        // Top Glaze Cap + Cascading Drips around the edge
+        const dripSubGroup = new THREE.Group();
+        frostingGroup.add(dripSubGroup);
+
+        const topCapGeo = new THREE.CylinderGeometry(cakeRadius + 0.135, cakeRadius + 0.135, 0.08, 64);
+        const topCapMesh = new THREE.Mesh(topCapGeo, dripMat);
+        topCapMesh.position.y = coatHeight + 0.02;
+        dripSubGroup.add(topCapMesh);
+
+        // 22 organic glaze drips hanging down the rim
+        const numDrips = 22;
+        for (let i = 0; i < numDrips; i++) {
+            const angle = (i / numDrips) * Math.PI * 2;
+            const dripLen = 0.28 + (i % 3) * 0.22 + (i % 2) * 0.14;
+            const r = cakeRadius + 0.13;
+
+            const dGeo = new THREE.CylinderGeometry(0.065, 0.05, dripLen, 12);
+            const dMesh = new THREE.Mesh(dGeo, dripMat);
+            dMesh.position.set(
+                Math.cos(angle) * r,
+                coatHeight - dripLen / 2,
+                Math.sin(angle) * r
+            );
+            dripSubGroup.add(dMesh);
+
+            // Droplet tip sphere at bottom of each drip
+            const tipGeo = new THREE.SphereGeometry(0.068, 12, 12);
+            const tipMesh = new THREE.Mesh(tipGeo, dripMat);
+            tipMesh.position.set(
+                Math.cos(angle) * r,
+                coatHeight - dripLen,
+                Math.sin(angle) * r
+            );
+            dripSubGroup.add(tipMesh);
+        }
+
+        // Bottom & Top Piped Cream Swirls (Rosettes)
+        const rosettesGroup = new THREE.Group();
+        frostingGroup.add(rosettesGroup);
+
+        const numRosettes = 14;
+        for (let i = 0; i < numRosettes; i++) {
+            const angle = (i / numRosettes) * Math.PI * 2;
+            // Top rim swirl
+            const swirlGeo = new THREE.TorusKnotGeometry(0.11, 0.045, 36, 8, 2, 3);
+            const swirlMesh = new THREE.Mesh(swirlGeo, coatMat);
+            swirlMesh.position.set(
+                Math.cos(angle) * (cakeRadius - 0.15),
+                coatHeight + 0.12,
+                Math.sin(angle) * (cakeRadius - 0.15)
+            );
+            swirlMesh.rotation.x = Math.PI / 2;
+            rosettesGroup.add(swirlMesh);
+
+            // Base pearl border
+            const basePearlGeo = new THREE.SphereGeometry(0.095, 16, 16);
+            const basePearl = new THREE.Mesh(basePearlGeo, coatMat);
+            basePearl.position.set(
+                Math.cos(angle) * (cakeRadius + 0.18),
+                0.08,
+                Math.sin(angle) * (cakeRadius + 0.18)
+            );
+            rosettesGroup.add(basePearl);
+        }
+
+        // Start Frosting hidden for ScrollTrigger Step 2
+        frostingGroup.scale.set(0.001, 0.001, 0.001);
+        frostingGroup.position.y = 2.5;
+
+        // --- D. STEP 3: ARTISANAL TOPPINGS, MACARONS & LIT CANDLE ---
+        const toppingsGroup = new THREE.Group();
+        cakeMasterGroup.add(toppingsGroup);
+
+        const primaryToppingMat = new THREE.MeshStandardMaterial({
+            color: MENU_DATA.toppings.berries.primaryColor,
+            roughness: 0.25,
+            metalness: 0.1
+        });
+        const secondaryToppingMat = new THREE.MeshStandardMaterial({
+            color: MENU_DATA.toppings.berries.secondaryColor,
+            roughness: 0.3,
+            metalness: 0.3
+        });
+
+        const numToppings = 10;
+        for (let i = 0; i < numToppings; i++) {
+            const angle = (i / numToppings) * Math.PI * 2;
+            const radiusRing = cakeRadius - 0.55;
+
+            if (i % 2 === 0) {
+                // Strawberry / Truffle / Gulab Jamun Sphere-Cone
+                const berryGeo = new THREE.ConeGeometry(0.16, 0.32, 16);
+                const berryMesh = new THREE.Mesh(berryGeo, primaryToppingMat);
+                berryMesh.position.set(
+                    Math.cos(angle) * radiusRing,
+                    coatHeight + 0.22,
+                    Math.sin(angle) * radiusRing
+                );
+                berryMesh.rotation.z = (Math.random() - 0.5) * 0.3;
+                toppingsGroup.add(berryMesh);
+            } else {
+                // French Macaron / Golden Disc
+                const macaronGeo = new THREE.CylinderGeometry(0.2, 0.2, 0.12, 24);
+                const macaronMesh = new THREE.Mesh(macaronGeo, secondaryToppingMat);
+                macaronMesh.position.set(
+                    Math.cos(angle) * radiusRing,
+                    coatHeight + 0.16,
+                    Math.sin(angle) * radiusRing
+                );
+                macaronMesh.rotation.x = 0.35;
+                macaronMesh.rotation.z = angle;
+                toppingsGroup.add(macaronMesh);
+            }
+        }
+
+        // Center Birthday Candle & Animated Glowing Flame
+        const candleGroup = new THREE.Group();
+        toppingsGroup.add(candleGroup);
+
+        const candleStickGeo = new THREE.CylinderGeometry(0.08, 0.08, 0.85, 24);
+        const candleStickMat = new THREE.MeshStandardMaterial({ color: 0xfff8eb, roughness: 0.3 });
+        const candleStick = new THREE.Mesh(candleStickGeo, candleStickMat);
+        candleStick.position.y = coatHeight + 0.45;
+        candleGroup.add(candleStick);
+
+        // Golden spiral stripe ring on candle
+        const candleRingGeo = new THREE.TorusGeometry(0.085, 0.015, 12, 24);
+        const candleRing = new THREE.Mesh(candleRingGeo, brassMat);
+        candleRing.rotation.x = Math.PI / 2;
+        candleRing.position.y = coatHeight + 0.65;
+        candleGroup.add(candleRing);
+
+        // Glowing 3D Flame
+        const flameGeo = new THREE.ConeGeometry(0.075, 0.26, 16);
+        const flameMat = new THREE.MeshBasicMaterial({ color: 0xffb703 });
+        const flameMesh = new THREE.Mesh(flameGeo, flameMat);
+        flameMesh.position.y = coatHeight + 1.02;
+        candleGroup.add(flameMesh);
+
+        const flameLight = new THREE.PointLight(0xff9e00, 1.5, 4);
+        flameLight.position.y = coatHeight + 1.05;
+        candleGroup.add(flameLight);
+
+        // Start Toppings elevated & hidden for ScrollTrigger Step 3
+        toppingsGroup.position.y = 5;
+        toppingsGroup.scale.set(0.001, 0.001, 0.001);
+
+        // --- E. FLOATING GOLDEN SUGAR PARTICLES ---
+        const particlesCount = 260;
+        const posArray = new Float32Array(particlesCount * 3);
+        for (let i = 0; i < particlesCount * 3; i++) {
+            posArray[i] = (Math.random() - 0.5) * 18;
+        }
+        const particlesGeo = new THREE.BufferGeometry();
+        particlesGeo.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+        const particlesMat = new THREE.PointsMaterial({
+            size: 0.065,
+            color: 0xd4af37,
+            transparent: true,
+            opacity: 0.75
+        });
+        const particleSystem = new THREE.Points(particlesGeo, particlesMat);
+        scene.add(particleSystem);
+
+        /**************************************************************
+         * 3. GSAP SCROLLTRIGGER 3D CAKE ASSEMBLY CHOREOGRAPHY
+         **************************************************************/
+        gsap.registerPlugin(ScrollTrigger);
+
+        function initScrollAnimations() {
+            // Responsive X offset so the 3D cake sits cleanly beside the glass cards on desktop
+            const isDesktop = window.innerWidth >= 1024;
+            const offsetLeft = isDesktop ? -1.9 : 0;
+            const offsetRight = isDesktop ? 1.9 : 0;
+
+            // Initial Hero state: Pedestal right of hero card
+            worldGroup.position.set(offsetRight, -0.5, 0);
+
+            // Master Scroll progress bar update
+            ScrollTrigger.create({
+                trigger: "body",
+                start: "top top",
+                end: "bottom bottom",
+                onUpdate: (self) => {
+                    const pct = Math.round(self.progress * 100);
+                    document.getElementById('scroll-progress-bar').style.height = Math.max(8, pct) + '%';
+                    document.getElementById('scroll-progress-pct').innerText = pct + '%';
+                }
+            });
+
+            // STEP 1 TIMELINE: Sponge Tiers Drop & Bounce onto Pedestal
+            const tlStep1 = gsap.timeline({
+                scrollTrigger: {
+                    trigger: "#cake-studio",
+                    start: "top 80%",
+                    end: "center center",
+                    scrub: 1.2
+                }
+            });
+
+            tlStep1.to(worldGroup.position, { x: offsetLeft, y: -0.6, duration: 1 }, 0)
+                   .to(camera.position, { x: 0, y: 2.8, z: 7.8, duration: 1 }, 0);
+
+            spongeTiers.forEach((tier, idx) => {
+                tlStep1.to(tier.position, {
+                    y: tier.userData.targetY,
+                    ease: "bounce.out",
+                    duration: 0.8
+                }, idx * 0.22);
+                tlStep1.to(tier.scale, {
+                    x: 1, y: 1, z: 1,
+                    ease: "back.out(1.4)",
+                    duration: 0.6
+                }, idx * 0.22);
+            });
+
+            // STEP 2 TIMELINE: Frosting Coat, Rosettes & Glossy Drip Glaze Cascade
+            const tlStep2 = gsap.timeline({
+                scrollTrigger: {
+                    trigger: "#step-frosting",
+                    start: "top 80%",
+                    end: "center center",
+                    scrub: 1.2
+                }
+            });
+
+            tlStep2.to(worldGroup.position, { x: offsetRight, y: -0.65, duration: 1 }, 0)
+                   .to(worldGroup.rotation, { y: Math.PI * 1.25, duration: 1 }, 0)
+                   .to(frostingGroup.position, { y: 0, ease: "power3.out", duration: 0.9 }, 0.1)
+                   .to(frostingGroup.scale, { x: 1, y: 1, z: 1, ease: "elastic.out(1, 0.75)", duration: 0.9 }, 0.1);
+
+            // STEP 3 TIMELINE: Artisanal Toppings & Lit Birthday Candle Crown
+            const tlStep3 = gsap.timeline({
+                scrollTrigger: {
+                    trigger: "#step-toppings",
+                    start: "top 80%",
+                    end: "center center",
+                    scrub: 1.2
+                }
+            });
+
+            tlStep3.to(worldGroup.position, { x: offsetLeft, y: -0.75, duration: 1 }, 0)
+                   .to(camera.position, { y: 3.3, z: 7.2, duration: 1 }, 0)
+                   .to(worldGroup.rotation, { y: Math.PI * 2.4, duration: 1 }, 0)
+                   .to(toppingsGroup.position, { y: 0, ease: "bounce.out", duration: 0.9 }, 0.15)
+                   .to(toppingsGroup.scale, { x: 1, y: 1, z: 1, ease: "back.out(1.6)", duration: 0.8 }, 0.15);
+
+            // STEP 4 TIMELINE: Bestsellers & Final Showcase Angle
+            const tlStep4 = gsap.timeline({
+                scrollTrigger: {
+                    trigger: "#step-bestsellers",
+                    start: "top 80%",
+                    end: "center center",
+                    scrub: 1.2
+                }
+            });
+
+            tlStep4.to(worldGroup.position, { x: offsetRight, y: -0.6, duration: 1 }, 0)
+                   .to(camera.position, { y: 3.0, z: 8.0, duration: 1 }, 0)
+                   .to(worldGroup.rotation, { y: Math.PI * 3.2, duration: 1 }, 0);
+        }
+
+        /**************************************************************
+         * 4. USER CUSTOMIZATION CONTROLLERS & LIVE INR CALCULATOR
+         **************************************************************/
+        function calculateTotalINR() {
+            // Oventales menu prices have not been verified. Never display invented totals.
+            return null;
+        }
+
+        function updateOrderUI() {
+            document.getElementById('bar-weight-badge').innerText = getPreviewScaleLabel();
+            const livePrice = document.getElementById('bar-total-price');
+            if (livePrice) livePrice.innerText = 'Not available';
+
+            const sName = MENU_DATA.sponge[cakeState.sponge].name;
+            const fName = MENU_DATA.frosting[cakeState.frosting].name;
+            const tName = MENU_DATA.toppings[cakeState.toppings].name;
+            document.getElementById('bar-summary-text').innerText = `${sName} • ${fName} • ${tName}`;
+
+            document.getElementById('modal-sponge').innerText = sName;
+            document.getElementById('modal-frosting').innerText = fName;
+            document.getElementById('modal-toppings').innerText = tName;
+            document.getElementById('modal-weight').innerText = `${getPreviewScaleLabel()} • Confirm actual size and dietary options with the bakery`;
+            document.getElementById('modal-message').innerText = `"${cakeState.message || 'Happy Celebrations'}"`;
+            document.getElementById('modal-total').innerText = 'Quote on request';
+        }
+
+        function setActiveButton(prefix, selectedKey) {
+            document.querySelectorAll(`[id^="${prefix}-"]`).forEach(btn => {
+                btn.classList.remove('active');
+            });
+            const target = document.getElementById(`${prefix}-${selectedKey}`);
+            if (target) target.classList.add('active');
+        }
+
+        function selectSponge(key) {
+            cakeState.sponge = key;
+            setActiveButton('sponge', key);
+            const data = MENU_DATA.sponge[key];
+            spongeMat.color.setHex(data.color);
+            fillingMat.color.setHex(data.fillingColor);
+
+            // Pulse bounce animation on sponge
+            gsap.fromTo(cakeMasterGroup.scale,
+                { x: cakeMasterGroup.scale.x * 1.06, y: cakeMasterGroup.scale.y * 0.94, z: cakeMasterGroup.scale.z * 1.06 },
+                { x: getWeightScale(), y: getWeightScale(), z: getWeightScale(), duration: 0.45, ease: "elastic.out(1.2, 0.5)" }
+            );
+            updateOrderUI();
+        }
+
+        function selectFrosting(key) {
+            cakeState.frosting = key;
+            setActiveButton('frosting', key);
+            const data = MENU_DATA.frosting[key];
+            coatMat.color.setHex(data.coatColor);
+            coatMat.roughness = data.roughness;
+            dripMat.color.setHex(data.dripColor);
+
+            // Ensure frosting is visible if user clicks before scrolling all the way
+            gsap.to(frostingGroup.scale, { x: 1, y: 1, z: 1, duration: 0.5, ease: "back.out(1.5)" });
+            gsap.to(frostingGroup.position, { y: 0, duration: 0.4 });
+            updateOrderUI();
+        }
+
+        function selectToppings(key) {
+            cakeState.toppings = key;
+            setActiveButton('topping', key);
+            const data = MENU_DATA.toppings[key];
+            primaryToppingMat.color.setHex(data.primaryColor);
+            primaryToppingMat.metalness = data.metalness;
+            secondaryToppingMat.color.setHex(data.secondaryColor);
+            secondaryToppingMat.metalness = data.metalness;
+
+            gsap.to(toppingsGroup.scale, { x: 1, y: 1, z: 1, duration: 0.5, ease: "back.out(1.6)" });
+            gsap.to(toppingsGroup.position, { y: 0, duration: 0.4 });
+            updateOrderUI();
+        }
+
+        function getPreviewScaleLabel() {
+            if (cakeState.weight === 0.5) return 'Petite preview scale';
+            if (cakeState.weight === 2.0) return 'Celebration preview scale';
+            return 'Classic preview scale';
+        }
+
+        function getWeightScale() {
+            if (cakeState.weight === 0.5) return 0.85;
+            if (cakeState.weight === 2.0) return 1.18;
+            return 1.0;
+        }
+
+        function selectWeight(kg) {
+            cakeState.weight = kg;
+            setActiveButton('weight', kg);
+            const s = getWeightScale();
+            gsap.to(cakeMasterGroup.scale, {
+                x: s, y: s, z: s,
+                duration: 0.6,
+                ease: "elastic.out(1, 0.6)"
+            });
+            updateOrderUI();
+        }
+
+        function toggleEggless() {
+            cakeState.eggless = !cakeState.eggless;
+            const badgeText = document.getElementById('eggless-badge-text');
+            const btn = document.getElementById('toggle-eggless-header');
+            if (cakeState.eggless) {
+                badgeText.innerText = 'Ask about eggless options';
+                btn.className = 'flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium border border-emerald-500/50 bg-emerald-950/60 text-emerald-300 transition';
+            } else {
+                badgeText.innerText = 'Ask about dietary options';
+                btn.className = 'flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium border border-amber-500/50 bg-amber-950/60 text-amber-300 transition';
+            }
+            updateOrderUI();
+        }
+
+        function updatePlaqueText(val) {
+            cakeState.message = val.trim() || 'Happy Celebrations';
+            updateOrderUI();
+        }
+
+        // Load Complete Pre-Configured Signature Bestseller
+        function loadSignaturePreset(preset) {
+            // Ensure all layers are assembled and visible in 3D
+            spongeTiers.forEach(tier => {
+                gsap.to(tier.position, { y: tier.userData.targetY, duration: 0.6 });
+                gsap.to(tier.scale, { x: 1, y: 1, z: 1, duration: 0.6 });
+            });
+            gsap.to(frostingGroup.position, { y: 0, duration: 0.6 });
+            gsap.to(frostingGroup.scale, { x: 1, y: 1, z: 1, duration: 0.6 });
+            gsap.to(toppingsGroup.position, { y: 0, duration: 0.6 });
+            gsap.to(toppingsGroup.scale, { x: 1, y: 1, z: 1, duration: 0.6 });
+
+            if (preset === 'rasmalai') {
+                selectSponge('rasmalai');
+                selectFrosting('pistachio');
+                selectToppings('gulabjamun');
+            } else if (preset === 'ferrero') {
+                selectSponge('chocolate');
+                selectFrosting('caramel');
+                selectToppings('goldferrero');
+            } else if (preset === 'berryopera') {
+                selectSponge('redvelvet');
+                selectFrosting('mascarpone');
+                selectToppings('berries');
+            } else if (preset === 'mangopearl') {
+                selectSponge('vanilla');
+                selectFrosting('mango');
+                selectToppings('pearls');
+            }
+
+            // Celebratory 360 spin
+            gsap.to(cakeMasterGroup.rotation, {
+                y: cakeMasterGroup.rotation.y + Math.PI * 2,
+                duration: 1.1,
+                ease: "power2.out"
+            });
+        }
+
+        // Interactive Blow Out Candle
+        function toggleCandleFlame() {
+            cakeState.candleLit = !cakeState.candleLit;
+            flameMesh.visible = cakeState.candleLit;
+            flameLight.intensity = cakeState.candleLit ? 1.5 : 0;
+            document.getElementById('candle-btn-text').innerText = cakeState.candleLit ? 'Blow Out Candle' : 'Relight Candle';
+        }
+
+        // Interactive Cut a Slice (Reveals inner sponge tiers!)
+        function toggleSliceView() {
+            cakeState.sliced = !cakeState.sliced;
+            if (cakeState.sliced) {
+                // Lift frosting coat slightly to showcase internal sponge & filling layers
+                gsap.to(coatMesh.scale, { x: 0.68, z: 0.68, duration: 0.6, ease: "power2.out" });
+                document.getElementById('slice-btn-text').innerText = 'Restore Full Coat';
+            } else {
+                gsap.to(coatMesh.scale, { x: 1, z: 1, duration: 0.6, ease: "power2.out" });
+                document.getElementById('slice-btn-text').innerText = 'Inspect Inner Sponge';
+            }
+        }
+
+        // Modal Handlers
+        function openCheckoutModal() {
+            updateOrderUI();
+            const modal = document.getElementById('checkout-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeCheckoutModal() {
+            const modal = document.getElementById('checkout-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+        function submitOrder(e) {
+            e.preventDefault();
+            alert("This demo does not accept orders. Please contact Oventales directly through its customer-referenced Instagram profile.");
+        }
+
+        /**************************************************************
+         * 5. MOUSE & TOUCH DRAG TO SPIN 3D CAKE + RENDER LOOP
+         **************************************************************/
+        let isDragging = false;
+        let prevX = 0;
+        let prevY = 0;
+
+        window.addEventListener('mousedown', (e) => {
+            if (e.target.closest('.interactive-panel') || e.target.closest('header') || e.target.closest('#checkout-modal')) return;
+            isDragging = true;
+            prevX = e.clientX;
+            prevY = e.clientY;
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            const deltaX = e.clientX - prevX;
+            const deltaY = e.clientY - prevY;
+            cakeMasterGroup.rotation.y += deltaX * 0.01;
+            cakeMasterGroup.rotation.x = Math.max(-0.25, Math.min(0.35, cakeMasterGroup.rotation.x + deltaY * 0.005));
+            prevX = e.clientX;
+            prevY = e.clientY;
+        });
+
+        window.addEventListener('mouseup', () => { isDragging = false; });
+
+        // Touch Support for Mobile Spin
+        window.addEventListener('touchstart', (e) => {
+            if (e.target.closest('.interactive-panel') || e.target.closest('header')) return;
+            if (e.touches.length === 1) {
+                isDragging = true;
+                prevX = e.touches[0].clientX;
+                prevY = e.touches[0].clientY;
+            }
+        }, { passive: true });
+
+        window.addEventListener('touchmove', (e) => {
+            if (!isDragging || e.touches.length !== 1) return;
+            const deltaX = e.touches[0].clientX - prevX;
+            cakeMasterGroup.rotation.y += deltaX * 0.012;
+            prevX = e.touches[0].clientX;
+        }, { passive: true });
+
+        window.addEventListener('touchend', () => { isDragging = false; });
+
+        // Resize Handler
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // Animation Loop
+        const clock = new THREE.Clock();
+        function animate() {
+            requestAnimationFrame(animate);
+            const elapsed = clock.getElapsedTime();
+
+            // Gentle turntable idle rotation
+            if (!isDragging) {
+                cakeMasterGroup.rotation.y += 0.0035;
+            }
+
+            // Flickering candle flame
+            if (cakeState.candleLit) {
+                flameMesh.scale.x = 1 + Math.sin(elapsed * 14) * 0.12;
+                flameMesh.scale.y = 1 + Math.cos(elapsed * 18) * 0.14;
+                flameLight.intensity = 1.4 + Math.sin(elapsed * 16) * 0.25;
+            }
+
+            // Floating golden dust particles
+            particleSystem.rotation.y = elapsed * 0.04;
+            particleSystem.position.y = Math.sin(elapsed * 0.5) * 0.25;
+
+            camera.lookAt(worldGroup.position.x * 0.35, 0.5, 0);
+            renderer.render(scene, camera);
+        }
+
+        window.onload = function () {
+            initScrollAnimations();
+            updateOrderUI();
+            animate();
+        };
+    </script>
+</body>
+</html>
